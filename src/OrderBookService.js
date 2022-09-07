@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const ORDERBOOK_API = 'http://localhost:4567/orderbook/';
+const ORDERBOOK_API = 'http://localhost:4568/orderbooks/';
 
 class OrderBookService {
 

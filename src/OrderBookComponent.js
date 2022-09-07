@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {createContext, useContext, useEffect, useMemo, useState} from 'react';
 import OrderBookService from './OrderBookService';
 import Button from '@mui/material/Button';
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -11,21 +11,29 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Container from '@mui/material/Container';
 
+const orderBookInitialState = { orderBook: [], setOrderBook: undefined };
+
+const OrderBookStateContext = createContext(orderBookInitialState);
+
+export const OrderBookStateProvider = ({ children }) => {
+    const [orderBook, setOrderBook] = useState(orderBookInitialState.orderBook);
+    const orderBookContextValue = useMemo(() => ({orderBook, setOrderBook}), [orderBook]);
+
+    return (
+        <OrderBookStateContext.Provider value={orderBookContextValue}>
+                    {children}
+        </OrderBookStateContext.Provider>
+    )
+}
+
+export const useOrderBookState = () => useContext(OrderBookStateContext);
 
 function OrderBookComponent() {
 
     const [product, setProduct] = useState("ETH-USD");
     const [bbo, setBbo] = useState({bid: 0, ask: 0});
-    const [orderBook, setOrderBook] = useState([]);
+    const {orderBook, setOrderBook} = useOrderBookState();
     const [isActive, setIsActive] = useState(false);
-
-    const setState = (orderBook) => {
-        setOrderBook(orderBook);
-        setBbo({
-            bid: orderBook[orderBook.length / 2].priceLevel.toFixed(2),
-            ask: orderBook && orderBook[orderBook.length / 2 - 1].priceLevel.toFixed(2)
-        })
-    }
 
     function toggle() {
         setIsActive(!isActive);
@@ -46,14 +54,18 @@ function OrderBookComponent() {
             interval = setInterval(() => {
                 OrderBookService.getOrderBook(product)
                     .then((response) => {
-                        setState(response.data)
+                        setOrderBook(response.data);
+                        setBbo({
+                            bid: orderBook[orderBook.length / 2].priceLevel.toFixed(2),
+                            ask: orderBook && orderBook[orderBook.length / 2 - 1].priceLevel.toFixed(2)
+                        })
                     })
-            }, 1000);
+            }, 250);
         } else if (!isActive && orderBook !== []) {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
-    }, [isActive, orderBook]);
+    }, [setOrderBook, product, isActive, orderBook]);
 
     return (
         <div>
@@ -64,7 +76,8 @@ function OrderBookComponent() {
             </ButtonGroup>
 
             <h1 className="text-center">Order Book {product}</h1>
-            <h2>Mid = {((Number(bbo.ask)+Number(bbo.bid))/2).toFixed(2)} (spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
+            <h2>Mid = {((Number(bbo.ask) + Number(bbo.bid)) / 2).toFixed(2)}
+                (spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
 
             <Container maxWidth="md">
                 <TableContainer component={Paper} elevation={3}>
@@ -92,25 +105,6 @@ function OrderBookComponent() {
                     </Table>
                 </TableContainer>
             </Container>
-            {/*<table className="table table-striped" border={'1px'} width={'300px'} align={'center'}>*/}
-            {/*    <thead>*/}
-            {/*    <tr>*/}
-            {/*        <td>Price</td>*/}
-            {/*        <td>Size</td>*/}
-            {/*    </tr>*/}
-            {/*    </thead>*/}
-            {/*    <tbody>*/}
-            {/*    {*/}
-            {/*        orderBook.map(*/}
-            {/*            level =>*/}
-            {/*                <tr key={level.price}>*/}
-            {/*                    <td style={{color: (level.side === 'BUY' ? 'green' : 'red')}}> {level.priceLevel.toFixed(2)}</td>*/}
-            {/*                    <td> {level.size.toFixed(8)}</td>*/}
-            {/*                </tr>*/}
-            {/*        )*/}
-            {/*    }*/}
-            {/*    </tbody>*/}
-            {/*</table>*/}
         </div>
     )
 }
