@@ -9,19 +9,19 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import Container from '@mui/material/Container';
+import {Grid} from "@mui/material";
 
-const orderBookInitialState = { orderBook: [], setOrderBook: undefined };
+const orderBookInitialState = {orderBook: [], setOrderBook: undefined};
 
 const OrderBookStateContext = createContext(orderBookInitialState);
 
-export const OrderBookStateProvider = ({ children }) => {
+export const OrderBookStateProvider = ({children}) => {
     const [orderBook, setOrderBook] = useState(orderBookInitialState.orderBook);
     const orderBookContextValue = useMemo(() => ({orderBook, setOrderBook}), [orderBook]);
 
     return (
         <OrderBookStateContext.Provider value={orderBookContextValue}>
-                    {children}
+            {children}
         </OrderBookStateContext.Provider>
     )
 }
@@ -68,20 +68,21 @@ function OrderBookComponent() {
     }, [setOrderBook, product, isActive, orderBook]);
 
     return (
-        <div>
-            <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                <Button onClick={toggle}
-                        variant={isActive ? 'outlined' : 'contained'}>{isActive ? 'Pause' : 'Start'}</Button>
-                <Button onClick={reset}>Reset</Button>
-            </ButtonGroup>
+        <Grid container spacing={2}>
+            <Grid item xs={6}>
+                <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                    <Button onClick={toggle}
+                            variant={isActive ? 'outlined' : 'contained'}>{isActive ? 'Pause' : 'Start'}</Button>
+                    <Button onClick={reset}>Reset</Button>
+                </ButtonGroup>
 
-            <h1 className="text-center">Order Book {product}</h1>
-            <h2>Mid = {((Number(bbo.ask) + Number(bbo.bid)) / 2).toFixed(2)}
-                (spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
-
-            <Container maxWidth="md">
+                <h1 className="text-center">Order Book {product}</h1>
+                <h2>Mid = {((Number(bbo.ask) + Number(bbo.bid)) / 2).toFixed(2)}
+                    (spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
+            </Grid>
+            <Grid item xs={6}>
                 <TableContainer component={Paper} elevation={3}>
-                    <Table sx={{minWidth: 650}} aria-label="simple table">
+                    <Table aria-label="simple table">
                         <TableHead>
                             <TableRow>
                                 <TableCell>Price</TableCell>
@@ -104,8 +105,8 @@ function OrderBookComponent() {
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </Container>
-        </div>
+            </Grid>
+        </Grid>
     )
 }
 

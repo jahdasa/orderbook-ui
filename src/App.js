@@ -1,22 +1,24 @@
 import './App.css';
-import OrderBookComponent from "./OrderBookComponent";
-import { OrderBookStateProvider } from "./OrderBookComponent";
+import OrderBookComponent, {OrderBookStateProvider} from "./OrderBookComponent";
 import Chart from "./Chart";
-import {Grid} from "@mui/material";
+import {Container, Grid} from "@mui/material";
 
 function App() {
     return (
         <div className="App">
-            <OrderBookStateProvider>
-                <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                        <OrderBookComponent/>
+            <br/>
+            <Container maxWidth="xl">
+                <OrderBookStateProvider>
+                    <Grid container spacing={2}>
+                        <Grid item xs={6}>
+                            <OrderBookComponent/>
+                        </Grid>
+                        <Grid item xs={6}>
+                            <Chart/>
+                        </Grid>
                     </Grid>
-                    <Grid item xs={6}>
-                        <Chart/>
-                    </Grid>
-                </Grid>
-            </OrderBookStateProvider>
+                </OrderBookStateProvider>
+            </Container>
         </div>
     )
 }
