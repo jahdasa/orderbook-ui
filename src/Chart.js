@@ -29,7 +29,7 @@ export const options = {
     scales: {
         y: {
             // suggestedMin: 0,
-            suggestedMax: 10,//TODO calculate based on vwap
+            suggestedMax: 0.01,//TODO calculate based on vwap
         }
     },
     plugins: {
@@ -66,14 +66,17 @@ export default function Chart() {
         ],
     })
 
-    useEffect(() => {
+
+
+    useEffect(() =>
+    {
         setState({
-            labels: orderBook.map(value => value.priceLevel),
+            labels: orderBook.map(value => value.price),
             datasets: [
                 {
                     label: 'Bids',
                     fill: true,
-                    data: orderBook.map((v) => v.side === 'BUY' ? v.total : null),
+                    data: orderBook.map((v) => v.side === 'Buy' ? v.total : null),
                     borderColor: 'rgb(70,161,41)',
                     backgroundColor: 'rgba(56,155,29,0.5)',
                     stepped: 'after',
@@ -81,7 +84,7 @@ export default function Chart() {
                 {
                     label: 'Asks',
                     fill: true,
-                    data: orderBook.map((v) => v.side === 'SELL' ? v.total : null),
+                    data: orderBook.map((v) => v.side === 'Sell' ? v.total : null),
                     borderColor: 'rgb(255, 99, 132)',
                     backgroundColor: 'rgba(255, 99, 132, 0.5)',
                     stepped: 'before',

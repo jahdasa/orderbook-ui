@@ -28,9 +28,43 @@ export const OrderBookStateProvider = ({children}) => {
 
 export const useOrderBookState = () => useContext(OrderBookStateContext);
 
+function findBestBuyAndSell(data)
+{
+    // Initialize variables to track best buy and sell
+    let bestBuyPrice = null;
+    let bestSellPrice = null;
+
+
+    // Iterate through each line
+    data.forEach(line =>
+    {
+        if (line.side === 'Buy')
+        {
+            // For buy orders, we want the highest price
+            if (bestBuyPrice === null || line.price > bestBuyPrice)
+            {
+                bestBuyPrice = line.price;
+            }
+        }
+
+        if (line.side === 'Sell')
+        {
+            // For sell orders, we want the lowest price
+            if (bestSellPrice === null || line.price < bestSellPrice)
+            {
+                bestSellPrice = line.price;
+            }
+        }
+    });
+
+    const bbo = {bid: bestBuyPrice, ask: bestSellPrice};
+
+    return bbo;
+}
+
 function OrderBookComponent() {
 
-    const [product, setProduct] = useState("ETH-USD");
+    const [product, setProduct] = useState("BTC-IRT");
     const [bbo, setBbo] = useState({bid: 0, ask: 0});
     const {orderBook, setOrderBook} = useOrderBookState();
     const [isActive, setIsActive] = useState(false);
@@ -49,19 +83,21 @@ function OrderBookComponent() {
         let interval = null;
         if (isActive) {
             const params = new URLSearchParams(window.location.search)
-            let id = params.get('productId') || 'ETH-USD'
+            let id = params.get('productId') || 'BTC-IRT'
             setProduct(id);
             interval = setInterval(() => {
-                OrderBookService.getOrderBook(product)
-                    .then((response) => {
-                        setOrderBook(response.data);
-                        setBbo({
-                            bid: orderBook[orderBook.length / 2].priceLevel.toFixed(2),
-                            ask: orderBook && orderBook[orderBook.length / 2 - 1].priceLevel.toFixed(2)
-                        })
+                OrderBookService.getOrderBook()
+                    .then((response) =>
+                    {
+                        const lines = response.data.data.lines;
+                        setOrderBook(lines);
+
+                        const bbo = findBestBuyAndSell(lines);
+                        setBbo(bbo)
                     })
             }, 250);
-        } else if (!isActive && orderBook !== []) {
+        } else if (!isActive && orderBook !== [])
+        {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
@@ -96,10 +132,10 @@ function OrderBookComponent() {
                                     sx={{'&:last-child td, &:last-child th': {border: 0}}}
                                 >
                                     <TableCell component="th" scope="row"
-                                               style={{color: (row.side === 'BUY' ? 'green' : 'red')}}>
-                                        {row.priceLevel.toFixed(2)}
+                                               style={{color: (row.side === 'Buy' ? 'green' : 'red')}}>
+                                        {row.price.toFixed(2)}
                                     </TableCell>
-                                    <TableCell align="right">{row.size.toFixed(8)}</TableCell>
+                                    <TableCell align="right">{row.quantity.toFixed(8)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
