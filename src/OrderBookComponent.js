@@ -95,7 +95,7 @@ function OrderBookComponent() {
                         const bbo = findBestBuyAndSell(lines);
                         setBbo(bbo)
                     })
-            }, 250);
+            }, 750);
         } else if (!isActive && orderBook !== [])
         {
             clearInterval(interval);

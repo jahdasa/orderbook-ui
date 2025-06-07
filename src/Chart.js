@@ -33,8 +33,8 @@ export const options = {
     scales: {
         x: {
             type: 'linear',
-            suggestedMin: 82000000000,
-            suggestedMax: 90000000000, // 10% بیشتر از حجم کل
+            suggestedMin: 85000000000,
+            suggestedMax: 89000000000, // 10% بیشتر از حجم کل
             title: {
                 display: true,
                 text: 'Price',
@@ -47,6 +47,7 @@ export const options = {
                 {
                     if (value >= 10000000) return (value/10000000).toFixed(1) + 'M';
                     if (value >= 10000) return (value/10000).toFixed(1) + 'K';
+
                     return value
                 }
             }
@@ -54,7 +55,7 @@ export const options = {
         y: {
             type: 'linear',
             suggestedMin: 0,
-            suggestedMax: 0.1, // 10% بیشتر از حجم کل
+            suggestedMax: 0.3, // 10% بیشتر از حجم کل
             ticks: {
                 callback: function(value) {
                     return value.toFixed(6);
