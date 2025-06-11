@@ -24,106 +24,121 @@ ChartJS.register(
     Filler
 );
 
-export const options = {
-    responsive: true,
-    interaction: {
-        mode: 'index',
-        intersect: false,
-    },
-    scales: {
-        x: {
-            type: 'linear',
-            suggestedMin: 85000000000,
-            suggestedMax: 89000000000, // 10% بیشتر از حجم کل
-            title: {
-                display: true,
-                text: 'Price',
-                font: {
-                    weight: 'bold'
+export default function Chart() {
+    const {orderBook} = useOrderBookState();
+    const [options, setOptions] = useState({
+        responsive: true,
+        interaction: {
+            mode: 'index',
+            intersect: false,
+        },
+        scales: {
+            x: {
+                type: 'linear',
+                suggestedMin: 0,
+                suggestedMax: 0,
+                title: {
+                    display: true,
+                    text: 'Price',
+                    font: {
+                        weight: 'bold'
+                    }
+                },
+                ticks: {
+                    callback: function(value) {
+                        if (value >= 10000000) return (value/10000000).toFixed(1) + 'M';
+                        if (value >= 10000) return (value/10000).toFixed(1) + 'K';
+                        return value;
+                    }
                 }
             },
-            ticks: {
-                callback: function(value)
-                {
-                    if (value >= 10000000) return (value/10000000).toFixed(1) + 'M';
-                    if (value >= 10000) return (value/10000).toFixed(1) + 'K';
-
-                    return value
+            y: {
+                type: 'linear',
+                suggestedMin: 0,
+                suggestedMax: 0.3,
+                ticks: {
+                    callback: function(value) {
+                        return value.toFixed(6);
+                    }
                 }
             }
         },
-        y: {
-            type: 'linear',
-            suggestedMin: 0,
-            suggestedMax: 0.3, // 10% بیشتر از حجم کل
-            ticks: {
-                callback: function(value) {
-                    return value.toFixed(6);
-                }
+        plugins: {
+            legend: {
+                position: 'top',
+                display: false
             }
-        }
-    },
-    plugins: {
-        legend: {
-            position: 'top',
-            display: false
-        }
-    },
-};
+        },
+    });
 
-export default function Chart() {
-
-    const {orderBook} = useOrderBookState();
-    const labels = []
     const [state, setState] = useState({
-        labels,
+        labels: [],
         datasets: [
             {
                 label: 'Bids',
                 fill: true,
-                data: labels.map(() => null),
+                data: [],
                 borderColor: 'rgb(70,161,41)',
                 backgroundColor: 'rgba(56,155,29,0.5)',
-                stepped: 'true',
+                stepped: 'after',
             },
             {
-                label: 'asks',
+                label: 'Asks',
                 fill: true,
-                data: labels.map(() => null),
+                data: [],
                 borderColor: 'rgb(255, 99, 132)',
                 backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                stepped: 'true',
+                stepped: 'before',
             },
         ],
-    })
+    });
 
+    useEffect(() => {
+        if (orderBook.length > 0)
+        {
+            const buyOrders = orderBook.filter(order => order.side === 'BUY');
+            const minBuyPrice = Math.min(...buyOrders.map(order => order.price));
+            const suggestedMin = minBuyPrice * 0.999;
 
+            const sellOrders = orderBook.filter(order => order.side === 'SELL');
+            const maxSellPrice = Math.max(...sellOrders.map(order => order.price));
+            const suggestedMax = maxSellPrice * 1.001;
 
-    useEffect(() =>
-    {
-        setState({
-            labels: orderBook.map(value => value.price),
-            datasets: [
-                {
-                    label: 'Bids',
-                    fill: true,
-                    data: orderBook.map((v) => v.side === 'BUY' ? v.total : null),
-                    borderColor: 'rgb(70,161,41)',
-                    backgroundColor: 'rgba(56,155,29,0.5)',
-                    stepped: 'after',
-                },
-                {
-                    label: 'Asks',
-                    fill: true,
-                    data: orderBook.map((v) => v.side === 'SELL' ? v.total : null),
-                    borderColor: 'rgb(255, 99, 132)',
-                    backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                    stepped: 'before',
-                },
-            ],
-        });
-    }, [orderBook])
-    return (
-        <Line options={options} data={state}/>
-    );
+            setOptions(prevOptions => ({
+                ...prevOptions,
+                scales: {
+                    ...prevOptions.scales,
+                    x: {
+                        ...prevOptions.scales.x,
+                        suggestedMin,
+                        suggestedMax,
+                    }
+                }
+            }));
+
+            setState({
+                labels: orderBook.map(value => value.price),
+                datasets: [
+                    {
+                        label: 'Bids',
+                        fill: true,
+                        data: orderBook.map((v) => v.side === 'BUY' ? v.total : null),
+                        borderColor: 'rgb(70,161,41)',
+                        backgroundColor: 'rgba(56,155,29,0.5)',
+                        stepped: 'after',
+                    },
+                    {
+                        label: 'Asks',
+                        fill: true,
+                        data: orderBook.map((v) => v.side === 'SELL' ? v.total : null),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        stepped: 'before',
+                    },
+                ],
+            });
+        }
+    }, [orderBook]);
+
+    return <Line options={options} data={state} />;
 }

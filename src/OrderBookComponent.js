@@ -15,6 +15,86 @@ const orderBookInitialState = {orderBook: [], setOrderBook: undefined};
 
 const OrderBookStateContext = createContext(orderBookInitialState);
 
+function formatNumber(number)
+{
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+const symbols =
+    {
+        "status": 200,
+        "data": {
+            "correlationId": "42@1749656326021@1",
+            "instruments": [
+                {
+                    "securityId": 101,
+                    "code": "BTCIRT",
+                    "name": "BITCOIN/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 102,
+                    "code": "USDTIRT",
+                    "name": "USDT/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 103,
+                    "code": "ETHIRT",
+                    "name": "ETHERIUM/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 104,
+                    "code": "DOGEIRT",
+                    "name": "DOGE-COIN/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 105,
+                    "code": "BNBIRT",
+                    "name": "BINANCE-COIN/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 106,
+                    "code": "BTCUSDT",
+                    "name": "BITCOIN/USDT"
+                },
+                {
+                    "securityId": 107,
+                    "code": "ETHUSDT",
+                    "name": "ETHERIUM/USDT"
+                },
+                {
+                    "securityId": 108,
+                    "code": "DOGEUSDT",
+                    "name": "DOGE-COIN/USDT"
+                },
+                {
+                    "securityId": 109,
+                    "code": "BNBUSDT",
+                    "name": "BINANCE-COIN/USDT"
+                },
+                {
+                    "securityId": 110,
+                    "code": "EOSUSDT",
+                    "name": "EOS/USDT"
+                },
+                {
+                    "securityId": 111,
+                    "code": "ETCIRT",
+                    "name": "ETHERIUM-CLASSIC/IRAN-TOMAN"
+                },
+                {
+                    "securityId": 112,
+                    "code": "ETCUSDT",
+                    "name": "ETHERIUM-CLASSIC/USDT"
+                }
+            ]
+        },
+        "error": null
+    };
+
+const symbolsMap = new Map(
+    symbols.data.instruments.map(item => [item.code, item])
+);
+
 export const OrderBookStateProvider = ({children}) => {
     const [orderBook, setOrderBook] = useState(orderBookInitialState.orderBook);
     const orderBookContextValue = useMemo(() => ({orderBook, setOrderBook}), [orderBook]);
@@ -38,7 +118,7 @@ function findBestBuyAndSell(data)
     // Iterate through each line
     data.forEach(line =>
     {
-        if (line.side === 'Buy')
+        if (line.side === 'BUY')
         {
             // For buy orders, we want the highest price
             if (bestBuyPrice === null || line.price > bestBuyPrice)
@@ -62,9 +142,10 @@ function findBestBuyAndSell(data)
     return bbo;
 }
 
-function OrderBookComponent() {
-
-    const [product, setProduct] = useState("BTC-IRT");
+function OrderBookComponent()
+{
+    const [levelSize, setLevelSize] = useState(5);
+    const [product, setProduct] = useState("BTCIRT");
     const [bbo, setBbo] = useState({bid: 0, ask: 0});
     const {orderBook, setOrderBook} = useOrderBookState();
     const [isActive, setIsActive] = useState(false);
@@ -81,12 +162,10 @@ function OrderBookComponent() {
 
     useEffect(() => {
         let interval = null;
-        if (isActive) {
-            const params = new URLSearchParams(window.location.search)
-            let id = params.get('productId') || 'BTC-IRT'
-            setProduct(id);
+        if (isActive)
+        {
             interval = setInterval(() => {
-                OrderBookService.getOrderBook()
+                OrderBookService.getOrderBook(product)
                     .then((response) =>
                     {
                         const lines = response.data.data.lines;
@@ -105,43 +184,111 @@ function OrderBookComponent() {
 
     return (
         <Grid container spacing={2}>
-            <Grid item xs={6}>
-                <ButtonGroup variant="contained" aria-label="outlined primary button group">
-                    <Button onClick={toggle}
-                            variant={isActive ? 'outlined' : 'contained'}>{isActive ? 'Pause' : 'Start'}</Button>
-                    <Button onClick={reset}>Reset</Button>
-                </ButtonGroup>
-
-                <h1 className="text-center">Order Book {product}</h1>
-                <h2>Mid = {((Number(bbo.ask) + Number(bbo.bid)) / 2).toFixed(2)}
-                    (spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
-            </Grid>
-            <Grid item xs={6}>
-                <TableContainer component={Paper} elevation={3}>
-                    <Table aria-label="simple table">
-                        <TableHead>
-                            <TableRow>
-                                <TableCell>Price</TableCell>
-                                <TableCell align="right">Size</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {orderBook.map((row) => (
-                                <TableRow
-                                    key={row.price}
-                                    sx={{'&:last-child td, &:last-child th': {border: 0}}}
-                                >
-                                    <TableCell component="th" scope="row"
-                                               style={{color: (row.side === 'BUY' ? 'green' : 'red')}}>
-                                        {row.price.toFixed(2)}
-                                    </TableCell>
-                                    <TableCell align="right">{row.quantity.toFixed(8)}</TableCell>
+            <Grid container item xs={12} spacing={2}>
+                <Grid item xs={6}>
+                    <h1 className="text-center">Symbols</h1>
+                    <TableContainer component={Paper} elevation={3}>
+                        <Table aria-label="symbol table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Symbol</TableCell>
+                                    <TableCell align="right">Name</TableCell>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
+                            </TableHead>
+                            <TableBody>
+                                {Array.from(symbolsMap.entries()).map(([code, value]) => (
+                                    <TableRow
+                                        key={code}
+                                        onClick={() => setProduct(code)}
+                                        sx={{
+                                            '&:last-child td, &:last-child th': { border: 0 },
+                                            cursor: 'pointer',
+                                            backgroundColor: product === code ? '#f5f5f5' : 'inherit',
+                                            '&:hover': { backgroundColor: '#f5f5f5' }
+                                        }}
+                                    >
+                                        <TableCell component="th" scope="row">
+                                            {code}
+                                        </TableCell>
+                                        <TableCell align="right">{value.name}</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Grid>
+
+                <Grid item xs={6}>
+                    <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                        <Button
+                            onClick={toggle}
+                            variant={isActive ? 'outlined' : 'contained'}
+                        >
+                            {isActive ? 'Pause' : 'Start'}
+                        </Button>
+                        <Button onClick={reset}>Reset</Button>
+                    </ButtonGroup>
+
+                    <h1 className="text-center">Order Book {product}</h1>
+                    <h2>Mid = {((Number(bbo.ask) + Number(bbo.bid)) / 2).toFixed(2)}</h2>
+                    <h2>(spread = {(bbo.ask - bbo.bid).toFixed(2)})</h2>
+
+                    <ButtonGroup variant="contained" aria-label="outlined primary button group">
+                        <Button
+                            onClick={() => setLevelSize(5)}
+                            variant={ levelSize === 5 ? 'outlined' : 'contained'}
+                        > 5
+                        </Button>
+                        <Button
+                            onClick={() => setLevelSize(10)}
+                                variant={levelSize === 10 ? 'outlined' : 'contained'}
+                        >10</Button>
+                        <Button
+                            onClick={() => setLevelSize(200)}
+                            variant={levelSize === 200 ? 'outlined' : 'contained'}
+                        >ALL</Button>
+                    </ButtonGroup>
+
+                    <TableContainer component={Paper} elevation={3}>
+                        <Table aria-label="price table">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Price</TableCell>
+                                    <TableCell align="right">Size</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {
+                                    orderBook
+                                        .filter(row => row.side === 'SELL')
+                                        .slice(-levelSize)
+                                        .concat(
+                                            orderBook
+                                                .filter(row => row.side === 'BUY')
+                                                .slice(0, levelSize)
+                                        )
+                                        .map((row) => (
+                                            <TableRow
+                                                key={row.price}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell
+                                                    component="th"
+                                                    scope="row"
+                                                    style={{ color: row.side === 'BUY' ? 'green' : 'red' }}
+                                                >
+                                                    {formatNumber(row.price.toFixed(2))}
+                                                </TableCell>
+                                                <TableCell align="right">{row.quantity.toFixed(8)}</TableCell>
+                                            </TableRow>
+                                        ))
+                                }
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Grid>
             </Grid>
+
         </Grid>
     )
 }
