@@ -1,8 +1,8 @@
 # Simple OrderBook UI
 
-[http://localhost:3000/?productId=ETH-USD]()
+[http://localhost:3000]()
 
-![OrderBook UI](orderbook.png)
+![OrderBook UI](docs%2Fscreen-1.png)
 
 ## Build
 `npm build`
@@ -12,6 +12,3 @@
 
 ## Author
 Anton Batiaev
-
-## UI
-![screen-1.png](docs%2Fscreen-1.png)
