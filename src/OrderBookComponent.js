@@ -47,7 +47,7 @@ function findBestBuyAndSell(data)
             }
         }
 
-        if (line.side === 'Sell')
+        if (line.side === 'SELL')
         {
             // For sell orders, we want the lowest price
             if (bestSellPrice === null || line.price < bestSellPrice)
@@ -132,7 +132,7 @@ function OrderBookComponent() {
                                     sx={{'&:last-child td, &:last-child th': {border: 0}}}
                                 >
                                     <TableCell component="th" scope="row"
-                                               style={{color: (row.side === 'Buy' ? 'green' : 'red')}}>
+                                               style={{color: (row.side === 'BUY' ? 'green' : 'red')}}>
                                         {row.price.toFixed(2)}
                                     </TableCell>
                                     <TableCell align="right">{row.quantity.toFixed(8)}</TableCell>
