@@ -83,20 +83,24 @@ function findBestBuyAndSell(data) {
     return {bid: bestBuyPrice, ask: bestSellPrice};
 }
 
-const callRestApi = async (endpoint) => {
-    try {
-        await fetch(`http://localhost:8080/api/v1/${endpoint}`, {
+const callRestApi = async (endpoint) =>
+{
+    try
+    {
+        await fetch(`http://localhost:8080/api/v1/${endpoint}`,
+        {
             method: 'POST'
         });
         console.log(`${endpoint} called`);
-    } catch (error) {
+    } catch (error)
+    {
         console.error(`Error calling ${endpoint}:`, error);
     }
 };
 
 function OrderBookComponent() {
     const [levelSize, setLevelSize] = useState(5);
-    const [product, setProduct] = useState("BTCIRT");
+    const [product, setProduct] = useState("BTC_IRT");
     const [bbo, setBbo] = useState({bid: 0, ask: 0});
     const {orderBook, setOrderBook} = useOrderBookState();
     const [isActive, setIsActive] = useState(false);
