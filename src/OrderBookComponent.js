@@ -28,18 +28,18 @@ const symbols = {
     "data": {
         "correlationId": "42@1749656326021@1",
         "instruments": [
-            {"securityId": 101, "code": "BTCIRT", "name": "BITCOIN/IRAN-TOMAN"},
-            {"securityId": 102, "code": "USDTIRT", "name": "USDT/IRAN-TOMAN"},
-            {"securityId": 103, "code": "ETHIRT", "name": "ETHERIUM/IRAN-TOMAN"},
-            {"securityId": 104, "code": "DOGEIRT", "name": "DOGE-COIN/IRAN-TOMAN"},
-            {"securityId": 105, "code": "BNBIRT", "name": "BINANCE-COIN/IRAN-TOMAN"},
-            {"securityId": 106, "code": "BTCUSDT", "name": "BITCOIN/USDT"},
-            {"securityId": 107, "code": "ETHUSDT", "name": "ETHERIUM/USDT"},
-            {"securityId": 108, "code": "DOGEUSDT", "name": "DOGE-COIN/USDT"},
-            {"securityId": 109, "code": "BNBUSDT", "name": "BINANCE-COIN/USDT"},
-            {"securityId": 110, "code": "EOSUSDT", "name": "EOS/USDT"},
-            {"securityId": 111, "code": "ETCIRT", "name": "ETHERIUM-CLASSIC/IRAN-TOMAN"},
-            {"securityId": 112, "code": "ETCUSDT", "name": "ETHERIUM-CLASSIC/USDT"}
+            {"securityId": 101, "code": "BTC_IRT", "name": "BITCOIN/IRAN-TOMAN"},
+            {"securityId": 102, "code": "USDT_IRT", "name": "USDT/IRAN-TOMAN"},
+            {"securityId": 103, "code": "ETH_IRT", "name": "ETHERIUM/IRAN-TOMAN"},
+            {"securityId": 104, "code": "DOGE_IRT", "name": "DOGE-COIN/IRAN-TOMAN"},
+            {"securityId": 105, "code": "BNB_IRT", "name": "BINANCE-COIN/IRAN-TOMAN"},
+            {"securityId": 106, "code": "BTC_USDT", "name": "BITCOIN/USDT"},
+            {"securityId": 107, "code": "ETH_USDT", "name": "ETHERIUM/USDT"},
+            {"securityId": 108, "code": "DOGE_USDT", "name": "DOGE-COIN/USDT"},
+            {"securityId": 109, "code": "BNB_USDT", "name": "BINANCE-COIN/USDT"},
+            {"securityId": 110, "code": "EOS_USDT", "name": "EOS/USDT"},
+            {"securityId": 111, "code": "ETC_IRT", "name": "ETHERIUM-CLASSIC/IRAN-TOMAN"},
+            {"securityId": 112, "code": "ETC_USDT", "name": "ETHERIUM-CLASSIC/USDT"}
         ]
     },
     "error": null
@@ -184,6 +184,8 @@ function OrderBookComponent() {
                             {isActive ? 'Pause' : 'Start'}
                         </Button>
                         <Button onClick={reset}>Reset</Button>
+                        <Button onClick={() => callRestApi('load-orders')}>Load Orders</Button>
+                        <Button onClick={() => callRestApi('cancel-orders')}>Cancel Orders</Button>
                     </ButtonGroup>
 
                     <h1 className="text-center">Order Book {product}</h1>
