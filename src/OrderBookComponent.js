@@ -9,87 +9,41 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import {Grid} from "@mui/material";
+import {Grid, IconButton} from "@mui/material";
+
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
+import StopIcon from '@mui/icons-material/Stop';
+import RestartAltIcon from '@mui/icons-material/RestartAlt';
 
 const orderBookInitialState = {orderBook: [], setOrderBook: undefined};
 
 const OrderBookStateContext = createContext(orderBookInitialState);
 
-function formatNumber(number)
-{
+function formatNumber(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
-const symbols =
-    {
-        "status": 200,
-        "data": {
-            "correlationId": "42@1749656326021@1",
-            "instruments": [
-                {
-                    "securityId": 101,
-                    "code": "BTCIRT",
-                    "name": "BITCOIN/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 102,
-                    "code": "USDTIRT",
-                    "name": "USDT/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 103,
-                    "code": "ETHIRT",
-                    "name": "ETHERIUM/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 104,
-                    "code": "DOGEIRT",
-                    "name": "DOGE-COIN/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 105,
-                    "code": "BNBIRT",
-                    "name": "BINANCE-COIN/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 106,
-                    "code": "BTCUSDT",
-                    "name": "BITCOIN/USDT"
-                },
-                {
-                    "securityId": 107,
-                    "code": "ETHUSDT",
-                    "name": "ETHERIUM/USDT"
-                },
-                {
-                    "securityId": 108,
-                    "code": "DOGEUSDT",
-                    "name": "DOGE-COIN/USDT"
-                },
-                {
-                    "securityId": 109,
-                    "code": "BNBUSDT",
-                    "name": "BINANCE-COIN/USDT"
-                },
-                {
-                    "securityId": 110,
-                    "code": "EOSUSDT",
-                    "name": "EOS/USDT"
-                },
-                {
-                    "securityId": 111,
-                    "code": "ETCIRT",
-                    "name": "ETHERIUM-CLASSIC/IRAN-TOMAN"
-                },
-                {
-                    "securityId": 112,
-                    "code": "ETCUSDT",
-                    "name": "ETHERIUM-CLASSIC/USDT"
-                }
-            ]
-        },
-        "error": null
-    };
+const symbols = {
+    "status": 200,
+    "data": {
+        "correlationId": "42@1749656326021@1",
+        "instruments": [
+            {"securityId": 101, "code": "BTCIRT", "name": "BITCOIN/IRAN-TOMAN"},
+            {"securityId": 102, "code": "USDTIRT", "name": "USDT/IRAN-TOMAN"},
+            {"securityId": 103, "code": "ETHIRT", "name": "ETHERIUM/IRAN-TOMAN"},
+            {"securityId": 104, "code": "DOGEIRT", "name": "DOGE-COIN/IRAN-TOMAN"},
+            {"securityId": 105, "code": "BNBIRT", "name": "BINANCE-COIN/IRAN-TOMAN"},
+            {"securityId": 106, "code": "BTCUSDT", "name": "BITCOIN/USDT"},
+            {"securityId": 107, "code": "ETHUSDT", "name": "ETHERIUM/USDT"},
+            {"securityId": 108, "code": "DOGEUSDT", "name": "DOGE-COIN/USDT"},
+            {"securityId": 109, "code": "BNBUSDT", "name": "BINANCE-COIN/USDT"},
+            {"securityId": 110, "code": "EOSUSDT", "name": "EOS/USDT"},
+            {"securityId": 111, "code": "ETCIRT", "name": "ETHERIUM-CLASSIC/IRAN-TOMAN"},
+            {"securityId": 112, "code": "ETCUSDT", "name": "ETHERIUM-CLASSIC/USDT"}
+        ]
+    },
+    "error": null
+};
 
 const symbolsMap = new Map(
     symbols.data.instruments.map(item => [item.code, item])
@@ -103,47 +57,44 @@ export const OrderBookStateProvider = ({children}) => {
         <OrderBookStateContext.Provider value={orderBookContextValue}>
             {children}
         </OrderBookStateContext.Provider>
-    )
-}
+    );
+};
 
 export const useOrderBookState = () => useContext(OrderBookStateContext);
 
-function findBestBuyAndSell(data)
-{
-    // Initialize variables to track best buy and sell
+function findBestBuyAndSell(data) {
     let bestBuyPrice = null;
     let bestSellPrice = null;
 
-
-    // Iterate through each line
-    data.forEach(line =>
-    {
-        if (line.side === 'BUY')
-        {
-            // For buy orders, we want the highest price
-            if (bestBuyPrice === null || line.price > bestBuyPrice)
-            {
+    data.forEach(line => {
+        if (line.side === 'BUY') {
+            if (bestBuyPrice === null || line.price > bestBuyPrice) {
                 bestBuyPrice = line.price;
             }
         }
 
-        if (line.side === 'SELL')
-        {
-            // For sell orders, we want the lowest price
-            if (bestSellPrice === null || line.price < bestSellPrice)
-            {
+        if (line.side === 'SELL') {
+            if (bestSellPrice === null || line.price < bestSellPrice) {
                 bestSellPrice = line.price;
             }
         }
     });
 
-    const bbo = {bid: bestBuyPrice, ask: bestSellPrice};
-
-    return bbo;
+    return {bid: bestBuyPrice, ask: bestSellPrice};
 }
 
-function OrderBookComponent()
-{
+const callRestApi = async (endpoint) => {
+    try {
+        await fetch(`http://localhost:8080/api/v1/${endpoint}`, {
+            method: 'POST'
+        });
+        console.log(`${endpoint} called`);
+    } catch (error) {
+        console.error(`Error calling ${endpoint}:`, error);
+    }
+};
+
+function OrderBookComponent() {
     const [levelSize, setLevelSize] = useState(5);
     const [product, setProduct] = useState("BTCIRT");
     const [bbo, setBbo] = useState({bid: 0, ask: 0});
@@ -156,27 +107,23 @@ function OrderBookComponent()
 
     function reset() {
         setOrderBook([]);
-        setBbo({bid: 0, ask: 0})
+        setBbo({bid: 0, ask: 0});
         setIsActive(false);
     }
 
     useEffect(() => {
         let interval = null;
-        if (isActive)
-        {
+        if (isActive) {
             interval = setInterval(() => {
                 OrderBookService.getOrderBook(product)
-                    .then((response) =>
-                    {
+                    .then((response) => {
                         const lines = response.data.data.lines;
                         setOrderBook(lines);
-
                         const bbo = findBestBuyAndSell(lines);
-                        setBbo(bbo)
-                    })
+                        setBbo(bbo);
+                    });
             }, 1000);
-        } else if (!isActive && orderBook !== [])
-        {
+        } else if (!isActive && orderBook !== []) {
             clearInterval(interval);
         }
         return () => clearInterval(interval);
@@ -193,6 +140,7 @@ function OrderBookComponent()
                                 <TableRow>
                                     <TableCell>Symbol</TableCell>
                                     <TableCell align="right">Name</TableCell>
+                                    <TableCell align="center">Actions</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -207,10 +155,19 @@ function OrderBookComponent()
                                             '&:hover': { backgroundColor: '#f5f5f5' }
                                         }}
                                     >
-                                        <TableCell component="th" scope="row">
-                                            {code}
-                                        </TableCell>
+                                        <TableCell component="th" scope="row">{code}</TableCell>
                                         <TableCell align="right">{value.name}</TableCell>
+                                        <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                                            <IconButton onClick={() => callRestApi('start-socket')} size="small" title="Start">
+                                                <PlayArrowIcon color="success" />
+                                            </IconButton>
+                                            <IconButton onClick={() => callRestApi('stop-socket')} size="small" title="Stop">
+                                                <StopIcon color="error" />
+                                            </IconButton>
+                                            <IconButton onClick={() => callRestApi('restart-socket')} size="small" title="Restart">
+                                                <RestartAltIcon color="primary" />
+                                            </IconButton>
+                                        </TableCell>
                                     </TableRow>
                                 ))}
                             </TableBody>
@@ -236,12 +193,11 @@ function OrderBookComponent()
                     <ButtonGroup variant="contained" aria-label="outlined primary button group">
                         <Button
                             onClick={() => setLevelSize(5)}
-                            variant={ levelSize === 5 ? 'outlined' : 'contained'}
-                        > 5
-                        </Button>
+                            variant={levelSize === 5 ? 'outlined' : 'contained'}
+                        >5</Button>
                         <Button
                             onClick={() => setLevelSize(10)}
-                                variant={levelSize === 10 ? 'outlined' : 'contained'}
+                            variant={levelSize === 10 ? 'outlined' : 'contained'}
                         >10</Button>
                         <Button
                             onClick={() => setLevelSize(200)}
@@ -288,9 +244,8 @@ function OrderBookComponent()
                     </TableContainer>
                 </Grid>
             </Grid>
-
         </Grid>
-    )
+    );
 }
 
-export default OrderBookComponent
+export default OrderBookComponent;
